@@ -23,8 +23,9 @@ skip_layer = [false,false,false,false,false,false];
 
 scparam.lambda=0.15;
 scparam.m = 600000;
-scparam.iter=1000;
+scparam.iter=200;
 scparam.epsilon = 1e-5;
+batchsz = 100;
 
 param = cell(1,layer);
 for k = 1:layer
@@ -72,8 +73,10 @@ for k = 1:layer
         Theta = Theta ./ repmat(sqrt(sum(Theta.^2,2)), 1, size(Theta,2)); 
         Theta = Theta(:);
         for j=1:param{k}.scparam.iter
-            [~, grad] = softICACost(Theta,X,param{k}.scparam);
-            Theta = Theta - 0.1*grad;
+            for l=1:param{k}.scparam.m/batchsz
+                [~, grad] = softICACost(Theta,X(:,(l-1)*batchsz+1:l*batchsz),param{k}.scparam);
+                Theta = Theta - 0.01*grad;
+            end
         end
         toc;
         A = reshape(Theta,param{k}.scparam.numFeatures,param{k}.scparam.n)';
